@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.samda.card.game.payload.ApiResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,5 +68,20 @@ public class GlobalExceptionHandler {
         ApiResponse apiResponse  = new ApiResponse(message,false);
         return new ResponseEntity<ApiResponse>(apiResponse,HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ApiResponse> apiExceptionHandler(InternalAuthenticationServiceException ex){
+        String message = "Player not found with this email !!";
+        ApiResponse apiResponse  = new ApiResponse(message,false);
+        return new ResponseEntity<ApiResponse>(apiResponse,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse> apiExceptionHandler(DataIntegrityViolationException ex){
+        String message = "Player already present with same id !!";
+        ApiResponse apiResponse  = new ApiResponse(message,false);
+        return new ResponseEntity<ApiResponse>(apiResponse,HttpStatus.BAD_REQUEST);
+    }
+
 
 }

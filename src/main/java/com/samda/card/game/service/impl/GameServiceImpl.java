@@ -39,6 +39,10 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameDto createGame(GameDto gameDto) throws JsonProcessingException {
         User player = userRepo.findById(gameDto.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", gameDto.getPlayerId()));
+        if(player.getGameId()!=null){
+            Game game = gameRepo.findById(player.getGameId()).orElseThrow(() -> new ResourcesNotFoundException("Game", "Id", player.getGameId()));
+            gameRepo.delete(game);
+        }
 
         int gameSize=getGameSize(gameDto.getGame_type());
 
@@ -77,6 +81,8 @@ public class GameServiceImpl implements GameService {
 
         Game game = gameDtoToGame(gameDto, computerCards, playerCards);
         Game createdGame = gameRepo.save(game);
+        player.setGameId(createdGame.getGame_id());
+        userRepo.save(player);
         return gameToGameDto(createdGame, computerCardDto, playerCardDto);
     }
 

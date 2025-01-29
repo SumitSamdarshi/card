@@ -43,6 +43,7 @@ public class User implements UserDetails {
     private Integer WinStreak;
     private Integer losses;
     private Integer draws;
+    private Integer gameId;
 
     public Integer getDraws() {
         return draws;
@@ -192,5 +193,13 @@ public class User implements UserDetails {
 
     public void setLosses(Integer losses) {
         this.losses = losses;
+    }
+
+    public Integer getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(Integer gameId) {
+        this.gameId = gameId;
     }
 }

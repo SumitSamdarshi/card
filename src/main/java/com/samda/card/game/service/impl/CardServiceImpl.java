@@ -195,13 +195,13 @@ public class CardServiceImpl implements CardService {
     public static String selectType() {
         Random rand = new Random();
         double randNum = rand.nextDouble();
-        if (randNum < 0.90) {
+        if (randNum < 0.85) {
             return "common";
-        } else if (randNum < 0.96) {
+        } else if (randNum < 0.95) {
             return "rare";
-        } else if (randNum < 0.985) {
+        } else if (randNum < 0.98) {
             return "epic";
-        } else if (randNum < 0.997) {
+        } else if (randNum < 0.995) {
             return "mythic";
         } else {
             return "legendary";

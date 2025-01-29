@@ -30,6 +30,7 @@ public class UserDto {
     private Integer WinStreak;
     private Integer losses;
     private Integer draws;
+    private Integer gameId;
 
     public Integer getUser_id() {
         return user_id;
@@ -141,5 +142,13 @@ public class UserDto {
 
     public void setDraws(Integer draws) {
         this.draws = draws;
+    }
+
+    public Integer getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(Integer gameId) {
+        this.gameId = gameId;
     }
 }
