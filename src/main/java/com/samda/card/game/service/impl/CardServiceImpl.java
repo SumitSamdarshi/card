@@ -73,11 +73,20 @@ public class CardServiceImpl implements CardService {
     public List<CardDto> getAllCardForUser(Integer userId) {
         User user = userRepo.findById(userId).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", userId));
         List<Integer> userCards=user.getCards();
-        List<Card> cardList1=userCards.stream().map(cardId -> cardRepo.findById(cardId).orElse(null))
-                .toList();
         List<CardDto> cardList=userCards.stream().map(cardId -> cardRepo.findById(cardId).orElse(null))
                 .map(card -> modelMapper.map(card,CardDto.class)).toList();
         return cardList;
+    }
+
+    @Override
+    public List<CardDto> getAllDistinctCardForUser(Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", userId));
+        List<Integer> playerCards=user.getCards();
+        List<Integer> playerDistinctCards = playerCards.stream()
+                .distinct()
+                .toList();
+        return playerDistinctCards.stream().map(cardId -> cardRepo.findById(cardId).orElse(null))
+                .map(card -> modelMapper.map(card,CardDto.class)).toList();
     }
 
     @Override
@@ -156,7 +165,7 @@ public class CardServiceImpl implements CardService {
         if(!userCards.containsAll(req.getCards())){
             throw new ApiExceptionHandler("Please select card available");
         }
-        if(user.getNoOfCards()-noOfCardsToCombine+1<7){
+        if((user.getNoOfCards()-noOfCardsToCombine+1)<7){
             throw new ApiExceptionHandler("Player should have at least 6 cards left after rest combine");
         }
         if(notSameType(req.getCards(),noOfCardsToCombine)){
@@ -195,13 +204,13 @@ public class CardServiceImpl implements CardService {
     public static String selectType() {
         Random rand = new Random();
         double randNum = rand.nextDouble();
-        if (randNum < 0.85) {
+        if (randNum < 0.80) {
             return "common";
-        } else if (randNum < 0.95) {
+        } else if (randNum < 0.92) {
             return "rare";
-        } else if (randNum < 0.98) {
+        } else if (randNum < 0.97) {
             return "epic";
-        } else if (randNum < 0.995) {
+        } else if (randNum < 0.992) {
             return "mythic";
         } else {
             return "legendary";

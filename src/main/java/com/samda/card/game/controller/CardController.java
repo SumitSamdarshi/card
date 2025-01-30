@@ -61,6 +61,12 @@ public class CardController {
         return new ResponseEntity<>(cardDtos, HttpStatus.OK);
     }
 
+    @GetMapping("/distinct/user/{userId}")
+    public ResponseEntity<List<CardDto>> getAllDistinctCardForUser(@PathVariable("userId") Integer userId){
+        List<CardDto> cardDtos=cardService.getAllDistinctCardForUser(userId);
+        return new ResponseEntity<>(cardDtos, HttpStatus.OK);
+    }
+
     @GetMapping("/type/{cardType}")
     public ResponseEntity<List<CardDto>> getCardByType(@PathVariable("cardType") String cardType){
         List<CardDto> cardDtos=cardService.getCardByType(cardType);

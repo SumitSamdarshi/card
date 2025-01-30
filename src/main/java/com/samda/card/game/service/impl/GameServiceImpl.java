@@ -34,29 +34,40 @@ public class GameServiceImpl implements GameService {
     public static final int  Game_7v7=7;
     public static final int Game_11v11=11;
     public static final int Game_15v15=15;
-    public static final int Game_Default=15;
+    public static final int Game_Default=7;
 
     @Override
     public GameDto createGame(GameDto gameDto) throws JsonProcessingException {
         User player = userRepo.findById(gameDto.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", gameDto.getPlayerId()));
         if(player.getGameId()!=null){
-            Game game = gameRepo.findById(player.getGameId()).orElseThrow(() -> new ResourcesNotFoundException("Game", "Id", player.getGameId()));
-            gameRepo.delete(game);
+            Game checkGame = gameRepo.findById(player.getGameId()).orElse(null);
+            if(checkGame !=null && checkGame.getWinner()!=null){
+                gameRepo.delete(checkGame);
+            }else if(checkGame !=null && checkGame.getWinner()==null){
+                return gameToGameDto(checkGame,playerCardDtos(checkGame.getComputerCards()),playerCardDtos(checkGame.getPlayerCards()));
+            }
         }
 
-        int gameSize=getGameSize(gameDto.getGame_type());
+        boolean isCustomGame= gameDto.getGame_type().equalsIgnoreCase("custom");
 
-        List<Integer> playerCards = new ArrayList<>(player.getCards().stream()
-                .distinct()
-                .toList());
-        Collections.shuffle(playerCards);
+        List<Integer> playerCards=null;
 
-        if(playerCards.size()<gameSize){
-            throw new ApiExceptionHandler("Player Having insufficient cards");
+        if(isCustomGame){
+            playerCards=new ArrayList<>(gameDto.getPlayerCards().stream().map(card -> modelMapper.map(card,CardDto.class)).map(CardDto::getCardId).toList());
+            Collections.shuffle(playerCards);
+        }else{
+            int gameSize=getGameSize(gameDto.getGame_type());
+            playerCards= new ArrayList<>(player.getCards().stream()
+                    .distinct()
+                    .toList());
+            if(playerCards.size()<gameSize){
+                throw new ApiExceptionHandler("Player Having insufficient cards");
+            }
+            Collections.shuffle(playerCards);
+            playerCards = playerCards.subList(0, gameSize);
         }
-        playerCards = playerCards.subList(0, gameSize);
+
         List<Integer> computerCards = generateComputerCards(playerCards);
-
         Random rand = new Random();
         int randomIndex = rand.nextInt(playerCards.size());
         Integer playerLostCardId=playerCards.get(randomIndex);
@@ -178,12 +189,11 @@ public class GameServiceImpl implements GameService {
             game.setWinner("Computer");
         }else if(game.getWinner()==null && playerWins(game)){
             User player = userRepo.findById(game.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", game.getPlayerId()));
-            player.setChest(player.getChest()+1);
+            int chestNo=getChestNo(game.getGame_type());
+            player.setChest(player.getChest()+chestNo);
             player.setWins(player.getWins()+1);
             player.setMatches(player.getMatches()+1);
             player.setWinStreak(player.getWinStreak()+1);
-            player.setNoOfCards(player.getNoOfCards()+1);
-
             userRepo.save(player);
             game.setWinner("Player");
         }
@@ -198,6 +208,9 @@ public class GameServiceImpl implements GameService {
 
         Game savedGame=gameRepo.save(game);
         GameDto gameDto=gameToGameDto(savedGame,computerCardDtoList,playerCardDtoList);
+        if(playerCardList.isEmpty()){
+            gameRepo.delete(savedGame);
+        }
         response.setGame(gameDto);
 
         return response;
@@ -386,6 +399,18 @@ public class GameServiceImpl implements GameService {
             return Game_15v15;
         }else{
             return Game_Default;
+        }
+    }
+
+    public int getChestNo(String gameType){
+        if(gameType.equalsIgnoreCase("7v7")){
+            return 1;
+        }else if(gameType.equalsIgnoreCase(("11v11"))){
+            return 2;
+        }else if(gameType.equalsIgnoreCase("15v15")){
+            return 3;
+        }else{
+            return 1;
         }
     }
 }

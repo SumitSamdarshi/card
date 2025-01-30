@@ -14,6 +14,7 @@ public interface CardService {
     CardDto updateCard(CardDto cardDto,Integer cardId);
     List<CardDto> getAllCard();
     List<CardDto> getAllCardForUser(Integer userId);
+    List<CardDto> getAllDistinctCardForUser(Integer userId);
     List<CardDto> getCardByType(String cardType);
     List<CardDto> getUserCardByType(Integer userId,String cardType);
     void deleteCard(Integer cardId);
