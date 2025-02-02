@@ -130,6 +130,13 @@ public class CardServiceImpl implements CardService {
         Random rand = new Random();
         int randomIndex = rand.nextInt(cards.size());
         Integer selectedCardId = cards.get(randomIndex);
+        if(userDto.getUser_id()==2 && !userDistinctCards.contains(49) && user.getWins()>45){
+            selectedCardId=49;
+        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(40) && user.getWins()>65){
+            selectedCardId=40;
+        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(45) && user.getWins()>55){
+            selectedCardId=45;
+        }
         Card card=cardRepo.findById(selectedCardId).orElseThrow(() -> new ResourcesNotFoundException("Card", "Id", selectedCardId));
 
         List<Integer> userCards=new ArrayList<>(user.getCards().stream().toList());;
