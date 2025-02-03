@@ -20,6 +20,7 @@ public class GameDto {
     private Integer playerScore;
     private Integer playerLostCardId;
     private Integer computerLostCardId;
+    private String turn;
 
     public Integer getGame_id() {
         return game_id;
@@ -105,5 +106,13 @@ public class GameDto {
     @JsonProperty
     public void setComputerLostCardId(Integer computerLostCardId) {
         this.computerLostCardId = computerLostCardId;
+    }
+
+    public String getTurn() {
+        return turn;
+    }
+
+    public void setTurn(String turn) {
+        this.turn = turn;
     }
 }

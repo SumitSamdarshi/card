@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -87,6 +88,7 @@ public class GameServiceImpl implements GameService {
         gameDto.setPlayerCards(playerCardDto);
         gameDto.setComputerScore(0);
         gameDto.setPlayerScore(0);
+        gameDto.setTurn("player");
         gameDto.setPlayerLostCardId(playerLostCardId);
         gameDto.setComputerLostCardId(computerLostCardId);
 
@@ -114,7 +116,8 @@ public class GameServiceImpl implements GameService {
 
         Random rand = new Random();
         int randomIndex = rand.nextInt(game.getComputerCards().size());
-        Integer computerCardId = game.getComputerCards().get(randomIndex);
+//        Integer computerCardId = game.getComputerCards().get(randomIndex);
+        Integer computerCardId =getComputerCardId(game.getComputerCards(),game.getTurn());
         CardDto computerCardDto=modelMapper.map(cardRepo.findById(computerCardId).orElse(null),CardDto.class);
         response.setComputerCard(computerCardDto);
 
@@ -161,10 +164,12 @@ public class GameServiceImpl implements GameService {
 
         if(winner !=null && winner==1){
             game.setComputerScore(game.getComputerScore()+1);
+            game.setTurn("player");
             response.setRoundWinner("Computer");
         }else if(winner !=null && winner==2){
             game.setPlayerScore(game.getPlayerScore()+1);
             response.setRoundWinner("Player");
+            game.setTurn("computer");
         }else{
             game.setComputerScore(game.getComputerScore()+1);
             game.setPlayerScore(game.getPlayerScore()+1);
@@ -289,7 +294,7 @@ public class GameServiceImpl implements GameService {
             List<Integer> validCardIds = cardRepo.findValidCardIdsByCardTypeExcludingList(cardType, playerCards);
 
             if (validCardIds.size() < count) {
-                List<Integer> allCardsOfType =cardRepo.findValidCardIdsByCardTypeExcludingList(cardType, new ArrayList<>());
+                List<Integer> allCardsOfType =cardRepo.findValidCardIdsByCardTypeExcludingList(cardType, validCardIds);
                 Collections.shuffle(allCardsOfType);
                 allCardsOfType=allCardsOfType.subList(0, (int) (count-validCardIds.size()));
                 validCardIds.addAll(allCardsOfType);
@@ -314,6 +319,7 @@ public class GameServiceImpl implements GameService {
         game.setWinner(gameDto.getWinner());
         game.setPlayerLostCardId(gameDto.getPlayerLostCardId());
         game.setComputerLostCardId(gameDto.getComputerLostCardId());
+        game.setTurn(gameDto.getTurn());
         return game;
     }
 
@@ -329,6 +335,7 @@ public class GameServiceImpl implements GameService {
         gameDto.setWinner(game.getWinner());
         gameDto.setPlayerLostCardId(game.getPlayerLostCardId());
         gameDto.setComputerLostCardId(game.getComputerLostCardId());
+        gameDto.setTurn(game.getTurn());
         return gameDto;
     }
 
@@ -363,6 +370,28 @@ public class GameServiceImpl implements GameService {
 
         List<String> result = new ArrayList<>();
         return entryList.get(randomIndex).getKey();
+    }
+
+    private int getComputerCardId(List<Integer> computerCards,String turn){
+        Map<Integer, Integer> m = new HashMap<>();
+        for (Integer computerCard : computerCards) {
+            CardDto card = modelMapper.map(cardRepo.findById(computerCard).orElse(null), CardDto.class);
+            int val = Math.max(Math.max(Math.max(Math.max(Math.max(Integer.parseInt(card.getSpeed()), Integer.parseInt(card.getCombat())),
+                    Integer.parseInt(card.getChakra())), Integer.parseInt(card.getJutsu())), Integer.parseInt(card.getIntel())), Integer.parseInt(card.getRegen()));
+            m.put(card.getCardId(), val);
+        }
+        List<Map.Entry<Integer, Integer>> entryList = new ArrayList<>(m.entrySet());
+        entryList.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+        Random rand = new Random();
+
+        if(turn.equalsIgnoreCase("player")){
+            int randomIndex = rand.nextInt(entryList.size()/2 + entryList.size()%2);
+            return entryList.get(randomIndex + entryList.size()/2).getKey();
+        }else{
+            int k=entryList.size()<4 ? 1 : (entryList.size()<6 ? 2 :3);
+            int randomIndex = rand.nextInt(k);
+            return entryList.get(randomIndex).getKey();
+        }
     }
 
     private Integer getWinnerId(Integer computerStat,Integer playerStat){
