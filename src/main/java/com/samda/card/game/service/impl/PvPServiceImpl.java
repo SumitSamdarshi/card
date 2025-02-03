@@ -205,9 +205,12 @@ public class PvPServiceImpl implements PvPService {
             pvp.setRewardCard(pvp.getPlayerTwoRewardCard());
 
             List<Integer> playerTwoOriginalCardList=playerTwo.getCards();
+            List<Integer> playerTwoDistinctCards=playerTwoOriginalCardList.stream()
+                    .distinct()
+                    .toList();
             List<Integer> playerOneOriginalCardList=playerOne.getCards();
             playerOneOriginalCardList.add(pvp.getPlayerTwoRewardCard());
-            if(playerTwoOriginalCardList.size()>7){
+            if(playerTwoDistinctCards.size()>7){
                 playerTwoOriginalCardList.remove(Integer.valueOf(pvp.getPlayerTwoRewardCard()));
                 playerTwo.setNoOfCards(playerTwo.getNoOfCards()-1);
                 playerTwo.setCards(playerTwoOriginalCardList);
@@ -231,7 +234,10 @@ public class PvPServiceImpl implements PvPService {
             List<Integer> playerTwoOriginalCardList=playerTwo.getCards();
             playerTwoOriginalCardList.add(pvp.getPlayerOneRewardCard());
             List<Integer> playerOneOriginalCardList=playerOne.getCards();
-            if(playerOneOriginalCardList.size()>7){
+            List<Integer> playerOneDistinctCards=playerOneOriginalCardList.stream()
+                    .distinct()
+                    .toList();
+            if(playerOneDistinctCards.size()>7){
                 playerOneOriginalCardList.remove(Integer.valueOf(pvp.getPlayerOneRewardCard()));
                 playerOne.setNoOfCards(playerOne.getNoOfCards()-1);
                 playerOne.setCards(playerOneOriginalCardList);

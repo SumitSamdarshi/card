@@ -174,7 +174,10 @@ public class GameServiceImpl implements GameService {
         if(game.getWinner()==null && computerWins(game)){
             User player = userRepo.findById(game.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", game.getPlayerId()));
             List<Integer> playerOriginalCardList=player.getCards();
-            if(playerOriginalCardList.size()>7){
+            List<Integer> playerDistinctCards=playerOriginalCardList.stream()
+                    .distinct()
+                    .toList();
+            if(playerDistinctCards.size()>7){
                 playerOriginalCardList.remove(Integer.valueOf(game.getPlayerLostCardId()));
                 Card lostCard=cardRepo.findById(game.getPlayerLostCardId()).orElseThrow(() -> new ResourcesNotFoundException("Card", "Id", game.getPlayerLostCardId()));
                 response.setPlayerLostCard(modelMapper.map(lostCard,CardDto.class));

@@ -122,7 +122,7 @@ public class CardServiceImpl implements CardService {
                 .distinct()
                 .toList();
         String type=selectType();
-        List<Integer> cards=cardRepo.findValidCardIdsByCardTypeExcludingList(type,userDistinctCards);
+        List<Integer> cards=new ArrayList(cardRepo.findValidCardIdsByCardTypeExcludingList(type,userDistinctCards));
         if(cards.isEmpty()){
             cards=cardRepo.findValidCardIdsByCardTypeExcludingList(type, new ArrayList<>());
         }
@@ -132,12 +132,17 @@ public class CardServiceImpl implements CardService {
         Integer selectedCardId = cards.get(randomIndex);
         if(userDto.getUser_id()==2 && !userDistinctCards.contains(49) && user.getWins()>45){
             selectedCardId=49;
-        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(40) && user.getWins()>65){
-            selectedCardId=40;
         }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(45) && user.getWins()>55){
             selectedCardId=45;
+        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(40) && user.getWins()>65){
+            selectedCardId=40;
+        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(47) && user.getWins()>75){
+            selectedCardId=47;
+        }else if(userDto.getUser_id()==2 && !userDistinctCards.contains(44) && user.getWins()>85){
+            selectedCardId=44;
         }
-        Card card=cardRepo.findById(selectedCardId).orElseThrow(() -> new ResourcesNotFoundException("Card", "Id", selectedCardId));
+        Integer finalSelectedCard=selectedCardId;
+        Card card=cardRepo.findById(selectedCardId).orElseThrow(() -> new ResourcesNotFoundException("Card", "Id", finalSelectedCard));
 
         List<Integer> userCards=new ArrayList<>(user.getCards().stream().toList());;
         user.setChest(user.getChest()-1);
@@ -172,9 +177,6 @@ public class CardServiceImpl implements CardService {
         if(!userCards.containsAll(req.getCards())){
             throw new ApiExceptionHandler("Please select card available");
         }
-        if((user.getNoOfCards()-noOfCardsToCombine+1)<7){
-            throw new ApiExceptionHandler("Player should have at least 6 cards left after rest combine");
-        }
         if(notSameType(req.getCards(),noOfCardsToCombine)){
             throw new ApiExceptionHandler("Please select cards of same type");
         }
@@ -186,6 +188,10 @@ public class CardServiceImpl implements CardService {
         List<Integer> cards=cardRepo.findValidCardIdsByCardTypeExcludingList(newCardType,userDistinctCards);
         if(cards.isEmpty()){
             cards=cardRepo.findValidCardIdsByCardTypeExcludingList(newCardType, new ArrayList<>());
+        }
+
+        if(userDistinctCards.size()<8){
+            throw new ApiExceptionHandler("Player should have at least 7 unique cards left after rest combine");
         }
 
         Random rand = new Random();
@@ -211,13 +217,13 @@ public class CardServiceImpl implements CardService {
     public static String selectType() {
         Random rand = new Random();
         double randNum = rand.nextDouble();
-        if (randNum < 0.80) {
+        if (randNum < 0.70) {
             return "common";
-        } else if (randNum < 0.92) {
+        } else if (randNum < 0.88) {
             return "rare";
-        } else if (randNum < 0.97) {
+        } else if (randNum < 0.96) {
             return "epic";
-        } else if (randNum < 0.992) {
+        } else if (randNum < 0.99) {
             return "mythic";
         } else {
             return "legendary";
