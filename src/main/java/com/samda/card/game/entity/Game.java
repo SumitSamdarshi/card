@@ -26,6 +26,7 @@ public class Game {
     private Integer playerLostCardId;
     private Integer computerLostCardId;
     private String turn;
+    private Integer winChestNumber;
 
     public Integer getGame_id() {
         return game_id;
@@ -125,5 +126,13 @@ public class Game {
 
     public void setTurn(String turn) {
         this.turn = turn;
+    }
+
+    public Integer getWinChestNumber() {
+        return winChestNumber;
+    }
+
+    public void setWinChestNumber(Integer winChestNumber) {
+        this.winChestNumber = winChestNumber;
     }
 }

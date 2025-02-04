@@ -57,7 +57,7 @@ public class GameServiceImpl implements GameService {
             playerCards=new ArrayList<>(gameDto.getPlayerCards().stream().map(card -> modelMapper.map(card,CardDto.class)).map(CardDto::getCardId).toList());
             Collections.shuffle(playerCards);
         }else{
-            int gameSize=getGameSize(gameDto.getGame_type());
+            int gameSize=getGameSize(gameDto.getGame_type(),player.getCards());
             playerCards= new ArrayList<>(player.getCards().stream()
                     .distinct()
                     .toList());
@@ -91,6 +91,7 @@ public class GameServiceImpl implements GameService {
         gameDto.setTurn("player");
         gameDto.setPlayerLostCardId(playerLostCardId);
         gameDto.setComputerLostCardId(computerLostCardId);
+        gameDto.setWinChestNumber(playerCards.size()/5);
 
         Game game = gameDtoToGame(gameDto, computerCards, playerCards);
         Game createdGame = gameRepo.save(game);
@@ -116,8 +117,8 @@ public class GameServiceImpl implements GameService {
 
         Random rand = new Random();
         int randomIndex = rand.nextInt(game.getComputerCards().size());
-//        Integer computerCardId = game.getComputerCards().get(randomIndex);
-        Integer computerCardId =getComputerCardId(game.getComputerCards(),game.getTurn());
+        int chance =rand.nextInt(2);
+        Integer computerCardId = chance==0 ? game.getComputerCards().get(randomIndex) :  getComputerCardId(game.getComputerCards(),game.getTurn());
         CardDto computerCardDto=modelMapper.map(cardRepo.findById(computerCardId).orElse(null),CardDto.class);
         response.setComputerCard(computerCardDto);
 
@@ -320,6 +321,7 @@ public class GameServiceImpl implements GameService {
         game.setPlayerLostCardId(gameDto.getPlayerLostCardId());
         game.setComputerLostCardId(gameDto.getComputerLostCardId());
         game.setTurn(gameDto.getTurn());
+        game.setWinChestNumber(gameDto.getWinChestNumber());
         return game;
     }
 
@@ -336,6 +338,7 @@ public class GameServiceImpl implements GameService {
         gameDto.setPlayerLostCardId(game.getPlayerLostCardId());
         gameDto.setComputerLostCardId(game.getComputerLostCardId());
         gameDto.setTurn(game.getTurn());
+        gameDto.setWinChestNumber(game.getWinChestNumber());
         return gameDto;
     }
 
@@ -367,6 +370,10 @@ public class GameServiceImpl implements GameService {
 
         Random rand = new Random();
         int randomIndex = rand.nextInt(2);
+
+        if(entryList.get(0).getValue()-entryList.get(1).getValue()>3){
+            randomIndex=0;
+        }
 
         List<String> result = new ArrayList<>();
         return entryList.get(randomIndex).getKey();
@@ -422,13 +429,18 @@ public class GameServiceImpl implements GameService {
         return diff > movesLeft;
     }
 
-    public int getGameSize(String gameType){
+    public int getGameSize(String gameType,List<Integer>playerCards){
         if(gameType.equalsIgnoreCase("7v7")){
             return Game_7v7;
         }else if(gameType.equalsIgnoreCase(("11v11"))){
             return Game_11v11;
         }else if(gameType.equalsIgnoreCase("15v15")){
             return Game_15v15;
+        }else if(gameType.equalsIgnoreCase("all")){
+            playerCards= new ArrayList<>(playerCards.stream()
+                    .distinct()
+                    .toList());
+            return playerCards.size();
         }else{
             return Game_Default;
         }
