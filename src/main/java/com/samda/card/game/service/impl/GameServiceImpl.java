@@ -66,8 +66,8 @@ public class GameServiceImpl implements GameService {
             int randomIndex = rand.nextInt(player.getCards().size());
             Integer playerLostCardId=player.getCards().get(randomIndex);
             gameDto.setPlayerLostCardId(playerLostCardId);
-            playerCards=allCards.subList(0, 6);
-            computerCards=allCards.subList(6, 12);
+            playerCards=allCards.subList(0, 10);
+            computerCards=allCards.subList(10, 20);
         }else{
             int gameSize=getGameSize(gameDto.getGame_type(),player.getCards());
             playerCards= new ArrayList<>(player.getCards().stream()
@@ -133,6 +133,9 @@ public class GameServiceImpl implements GameService {
         Random rand = new Random();
         int randomIndex = rand.nextInt(game.getComputerCards().size());
         int chance =rand.nextInt(2);
+        if(game.getGame_type().equalsIgnoreCase("random10")){
+            chance=0;
+        }
         Integer computerCardId = chance==0 ? game.getComputerCards().get(randomIndex) :  getComputerCardId(game.getComputerCards(),game.getTurn());
         CardDto computerCardDto=modelMapper.map(cardRepo.findById(computerCardId).orElse(null),CardDto.class);
         response.setComputerCard(computerCardDto);
@@ -182,6 +185,7 @@ public class GameServiceImpl implements GameService {
                 computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
                 computerCardList.add(Integer.valueOf(playerCardDto.getCardId()));
                 playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+                game.setTurn("computer");
             }
         }else if(winner !=null && winner==2){
             game.setPlayerScore(game.getPlayerScore()+1);
@@ -191,6 +195,7 @@ public class GameServiceImpl implements GameService {
                 computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
                 playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
                 playerCardList.add(Integer.valueOf(computerCardDto.getCardId()));
+                game.setTurn("player");
             }
         }else{
             game.setComputerScore(game.getComputerScore()+1);
