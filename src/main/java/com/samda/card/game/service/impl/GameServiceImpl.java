@@ -50,12 +50,24 @@ public class GameServiceImpl implements GameService {
         }
 
         boolean isCustomGame= gameDto.getGame_type().equalsIgnoreCase("custom");
+        boolean isRandom =gameDto.getGame_type().equalsIgnoreCase("random10");
 
         List<Integer> playerCards=null;
+        List<Integer> computerCards=null;
 
         if(isCustomGame){
             playerCards=new ArrayList<>(gameDto.getPlayerCards().stream().map(card -> modelMapper.map(card,CardDto.class)).map(CardDto::getCardId).toList());
             Collections.shuffle(playerCards);
+        }else if(isRandom){
+            List<Card> cards=cardRepo.findAll();
+            List<Integer>allCards=new ArrayList<>(cards.stream().map(Card::getCardId).toList());
+            Collections.shuffle(allCards);
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(player.getCards().size());
+            Integer playerLostCardId=player.getCards().get(randomIndex);
+            gameDto.setPlayerLostCardId(playerLostCardId);
+            playerCards=allCards.subList(0, 6);
+            computerCards=allCards.subList(6, 12);
         }else{
             int gameSize=getGameSize(gameDto.getGame_type(),player.getCards());
             playerCards= new ArrayList<>(player.getCards().stream()
@@ -68,12 +80,17 @@ public class GameServiceImpl implements GameService {
             playerCards = playerCards.subList(0, gameSize);
         }
 
-        List<Integer> computerCards = generateComputerCards(playerCards);
-        Random rand = new Random();
-        int randomIndex = rand.nextInt(playerCards.size());
-        Integer playerLostCardId=playerCards.get(randomIndex);
-        randomIndex = rand.nextInt(computerCards.size());
-        Integer computerLostCardId=computerCards.get(randomIndex);
+        if(!isRandom){
+            computerCards = generateComputerCards(playerCards);
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(playerCards.size());
+            Integer playerLostCardId=playerCards.get(randomIndex);
+            randomIndex = rand.nextInt(computerCards.size());
+            Integer computerLostCardId=computerCards.get(randomIndex);
+            gameDto.setPlayerLostCardId(playerLostCardId);
+            gameDto.setComputerLostCardId(computerLostCardId);
+        }
+
 
         List<CardDto> computerCardDto = computerCards.stream()
                 .map(id -> cardRepo.findById(id).orElse(null))
@@ -89,8 +106,6 @@ public class GameServiceImpl implements GameService {
         gameDto.setComputerScore(0);
         gameDto.setPlayerScore(0);
         gameDto.setTurn("player");
-        gameDto.setPlayerLostCardId(playerLostCardId);
-        gameDto.setComputerLostCardId(computerLostCardId);
         gameDto.setWinChestNumber(playerCards.size()/5);
 
         Game game = gameDtoToGame(gameDto, computerCards, playerCards);
@@ -154,28 +169,44 @@ public class GameServiceImpl implements GameService {
                 break;
         }
 
-        computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
-        playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+        if(!game.getGame_type().equalsIgnoreCase("random10")){
+            computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
+            playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+        }
+
+        if(winner !=null && winner==1){
+            game.setComputerScore(game.getComputerScore()+1);
+            game.setTurn("player");
+            response.setRoundWinner("Computer");
+            if(game.getGame_type().equalsIgnoreCase("random10")){
+                computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
+                computerCardList.add(Integer.valueOf(playerCardDto.getCardId()));
+                playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+            }
+        }else if(winner !=null && winner==2){
+            game.setPlayerScore(game.getPlayerScore()+1);
+            response.setRoundWinner("Player");
+            game.setTurn("computer");
+            if(game.getGame_type().equalsIgnoreCase("random10")){
+                computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
+                playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+                playerCardList.add(Integer.valueOf(computerCardDto.getCardId()));
+            }
+        }else{
+            game.setComputerScore(game.getComputerScore()+1);
+            game.setPlayerScore(game.getPlayerScore()+1);
+            response.setRoundWinner("Draw");
+            if(game.getGame_type().equalsIgnoreCase("random10")){
+                computerCardList.remove(Integer.valueOf(computerCardDto.getCardId()));
+                playerCardList.remove(Integer.valueOf(playerCardDto.getCardId()));
+            }
+        }
 
         List<CardDto> computerCardDtoList=playerCardDtos(computerCardList);
         List<CardDto> playerCardDtoList=playerCardDtos(playerCardList);
 
         game.setComputerCards(computerCardList);
         game.setPlayerCards(playerCardList);
-
-        if(winner !=null && winner==1){
-            game.setComputerScore(game.getComputerScore()+1);
-            game.setTurn("player");
-            response.setRoundWinner("Computer");
-        }else if(winner !=null && winner==2){
-            game.setPlayerScore(game.getPlayerScore()+1);
-            response.setRoundWinner("Player");
-            game.setTurn("computer");
-        }else{
-            game.setComputerScore(game.getComputerScore()+1);
-            game.setPlayerScore(game.getPlayerScore()+1);
-            response.setRoundWinner("Draw");
-        }
 
         if(game.getWinner()==null && computerWins(game)){
             User player = userRepo.findById(game.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", game.getPlayerId()));
@@ -415,6 +446,9 @@ public class GameServiceImpl implements GameService {
         if(game.getPlayerScore()>=game.getComputerScore()){
             return false;
         }
+        if(game.getGame_type().equalsIgnoreCase("random10") && game.getPlayerScore()<game.getComputerScore() && game.getPlayerCards().isEmpty()){
+            return true;
+        }
         int movesLeft=game.getPlayerCards().size();
         int diff=game.getComputerScore()-game.getPlayerScore();
         return diff > movesLeft;
@@ -423,6 +457,9 @@ public class GameServiceImpl implements GameService {
     boolean playerWins(Game game){
         if(game.getPlayerScore()<=game.getComputerScore()){
             return false;
+        }
+        if(game.getGame_type().equalsIgnoreCase("random10") && game.getPlayerScore()>game.getComputerScore() && game.getComputerCards().isEmpty()){
+            return true;
         }
         int movesLeft=game.getPlayerCards().size();
         int diff=game.getPlayerScore()-game.getComputerScore();
