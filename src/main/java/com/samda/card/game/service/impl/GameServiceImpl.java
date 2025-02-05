@@ -132,11 +132,14 @@ public class GameServiceImpl implements GameService {
 
         Random rand = new Random();
         int randomIndex = rand.nextInt(game.getComputerCards().size());
-        int chance =rand.nextInt(2);
-        if(game.getGame_type().equalsIgnoreCase("random10")){
-            chance=0;
+        int chance =rand.nextInt(4);
+        if(game.getTurn().equalsIgnoreCase("computer")){
+            chance=rand.nextInt(3);
         }
-        Integer computerCardId = chance==0 ? game.getComputerCards().get(randomIndex) :  getComputerCardId(game.getComputerCards(),game.getTurn());
+        if(game.getGame_type().equalsIgnoreCase("random10")){
+            chance=1;
+        }
+        Integer computerCardId = chance==0 ? getComputerCardId(game.getComputerCards(),game.getTurn()) : game.getComputerCards().get(randomIndex);
         CardDto computerCardDto=modelMapper.map(cardRepo.findById(computerCardId).orElse(null),CardDto.class);
         response.setComputerCard(computerCardDto);
 
@@ -234,8 +237,7 @@ public class GameServiceImpl implements GameService {
             game.setWinner("Computer");
         }else if(game.getWinner()==null && playerWins(game)){
             User player = userRepo.findById(game.getPlayerId()).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", game.getPlayerId()));
-            int chestNo=getChestNo(game.getGame_type());
-            player.setChest(player.getChest()+chestNo);
+            player.setChest(player.getChest()+game.getWinChestNumber());
             player.setWins(player.getWins()+1);
             player.setMatches(player.getMatches()+1);
             player.setWinStreak(player.getWinStreak()+1);
@@ -485,18 +487,6 @@ public class GameServiceImpl implements GameService {
             return playerCards.size();
         }else{
             return Game_Default;
-        }
-    }
-
-    public int getChestNo(String gameType){
-        if(gameType.equalsIgnoreCase("7v7")){
-            return 1;
-        }else if(gameType.equalsIgnoreCase(("11v11"))){
-            return 2;
-        }else if(gameType.equalsIgnoreCase("15v15")){
-            return 3;
-        }else{
-            return 1;
         }
     }
 }
