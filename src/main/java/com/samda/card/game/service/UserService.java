@@ -13,4 +13,5 @@ public interface UserService {
     void deleteUser(Integer userId);
     UserDto registerNewUser(UserDto user);
     AssignCardResponse assignFirstCards(Integer userId) throws JsonProcessingException;
+    UserDto scrapCard(Integer userId,Integer cardId) throws JsonProcessingException;
 }

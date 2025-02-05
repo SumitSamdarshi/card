@@ -1,6 +1,7 @@
 package com.samda.card.game.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.samda.card.game.entity.Card;
 import com.samda.card.game.entity.User;
 import com.samda.card.game.exceptions.ApiExceptionHandler;
 import com.samda.card.game.exceptions.ResourcesNotFoundException;
@@ -104,6 +105,22 @@ public class UserServiceImpl implements UserService {
         response.setUser(modelMapper.map(updatedUser,UserDto.class));
         response.setCards(cardDtos);
         return response;
+    }
+
+    @Override
+    public UserDto scrapCard(Integer userId,Integer cardId) throws JsonProcessingException {
+        User user = userRepo.findById(userId).orElseThrow(() -> new ResourcesNotFoundException("User", "Id", userId));
+        Card card=cardRepo.findById(cardId).orElseThrow(() -> new ResourcesNotFoundException("Card", "Id", cardId));
+        if(!card.getCardType().equalsIgnoreCase("legendary")){
+            throw new ApiExceptionHandler("Only Legendary cards can be scraped");
+        }
+        user.setNoOfCards(user.getNoOfCards()-1);
+        user.setChest(user.getChest()+15);
+        List<Integer> playerCards=user.getCards();
+        playerCards.remove(Integer.valueOf(cardId));
+        user.setCards(playerCards);
+        userRepo.save(user);
+        return modelMapper.map(user,UserDto.class);
     }
 
     List<Integer> generateCardList(){

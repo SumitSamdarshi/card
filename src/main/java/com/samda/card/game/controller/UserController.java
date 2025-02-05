@@ -62,6 +62,12 @@ public class UserController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
+    @GetMapping("/scrap/{userId}/{cardId}")
+    public ResponseEntity<UserDto> scrapCard(@PathVariable Integer userId,@PathVariable Integer cardId) throws JsonProcessingException {
+        UserDto user=userService.scrapCard(userId,cardId);
+        return new ResponseEntity<>(user,HttpStatus.OK);
+    }
+
     @PostMapping("/image/upload/{userId}")
     public ResponseEntity<UserDto> uploadImage(@RequestParam MultipartFile userImage, @PathVariable Integer userId) throws IOException {
         UserDto userDto=userService.getUserById(userId);

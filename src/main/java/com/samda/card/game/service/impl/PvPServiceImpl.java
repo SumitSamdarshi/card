@@ -212,10 +212,10 @@ public class PvPServiceImpl implements PvPService {
             playerOneOriginalCardList.add(pvp.getPlayerTwoRewardCard());
             if(playerTwoDistinctCards.size()>7){
                 playerTwoOriginalCardList.remove(Integer.valueOf(pvp.getPlayerTwoRewardCard()));
-                playerTwo.setNoOfCards(playerTwo.getNoOfCards()-1);
+                playerTwo.setNoOfCards(playerTwoOriginalCardList.size());
                 playerTwo.setCards(playerTwoOriginalCardList);
             }
-            playerOne.setNoOfCards(playerOne.getNoOfCards()+1);
+            playerOne.setNoOfCards(playerOneOriginalCardList.size());
             playerOne.setCards(playerOneOriginalCardList);
             userRepo.save(playerOne);
             userRepo.save(playerTwo);
@@ -239,11 +239,11 @@ public class PvPServiceImpl implements PvPService {
                     .toList();
             if(playerOneDistinctCards.size()>7){
                 playerOneOriginalCardList.remove(Integer.valueOf(pvp.getPlayerOneRewardCard()));
-                playerOne.setNoOfCards(playerOne.getNoOfCards()-1);
+                playerOne.setNoOfCards(playerOneOriginalCardList.size());
                 playerOne.setCards(playerOneOriginalCardList);
             }
             playerTwo.setCards(playerTwoOriginalCardList);
-            playerTwo.setNoOfCards(playerTwo.getNoOfCards()+1);
+            playerTwo.setNoOfCards(playerTwoOriginalCardList.size());
             userRepo.save(playerOne);
             userRepo.save(playerTwo);
         }

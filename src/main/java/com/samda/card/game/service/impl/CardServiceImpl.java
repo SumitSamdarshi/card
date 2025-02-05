@@ -197,7 +197,7 @@ public class CardServiceImpl implements CardService {
 
         Collections.sort(userCards);
         user.setCards(userCards);
-        user.setNoOfCards(user.getNoOfCards()-noOfCardsToCombine+1);
+        user.setNoOfCards(userCards.size());
         User updatedUser= userRepo.save(user);
         DrawCardDto res=new DrawCardDto();
         res.setCard(modelMapper.map(card,CardDto.class));
