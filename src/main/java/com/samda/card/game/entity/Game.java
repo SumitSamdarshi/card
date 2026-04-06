@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Game {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer game_id;
     private String game_type;
     private Integer playerId;

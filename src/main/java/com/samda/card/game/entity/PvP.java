@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class PvP {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer pvpGameId;
     private Integer pvpGameSize;
     private Integer playerOneId;
